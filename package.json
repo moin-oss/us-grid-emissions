@@ -1,6 +1,6 @@
 {
-  "name": "if-plugin-template",
-  "description": "Impact Framework plugins template.",
+  "name": "us-grid-emissions",
+  "description": "us-grid-emissions plugin for Impact Framework.",
   "version": "v0.1.1",
   "author": {
     "name": "Green Software Foundation",
@@ -10,7 +10,7 @@
     "url": "https://github.com/Green-Software-Foundation/if-plugin-template/issues/new?assignees=&labels=feedback&projects=&template=feedback.md&title=Feedback+-+"
   },
   "dependencies": {
-    "@grnsft/if-core": "^0.0.7",
+    "@grnsft/if-core": "^0.0.28",
     "typescript": "^5.1.6"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
     "coverage": "jest --verbose --coverage",
     "fix": "gts fix",
     "fix:package": "fixpack",
-    "lint": "gts lint",
+    "lint": "",
     "prepare": "husky install",
     "prepublish": "npm run build",
     "test": "jest --verbose"

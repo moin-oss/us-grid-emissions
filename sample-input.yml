@@ -1,0 +1,20 @@
+name: us-grid-emissions
+description:
+tags:
+initialize:
+    plugins:
+        us-grid-emissions:
+            method: USGridEmissionsPlugin
+            path: 'us-grid-emissions'
+tree:
+    children:
+        child:
+            pipeline:
+                observe:
+                regroup:
+                compute:
+                    - us-grid-emissions
+            inputs:
+                -   start-date: 2024-10-24T13
+                    end-date: 2024-10-24T16
+                    balancing-authority: CENT

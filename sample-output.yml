@@ -1,0 +1,21 @@
+name: basic-demo
+description:
+tags:
+initialize:
+    plugins:
+        us-grid-emissions:
+            path: 'us-grid-emissions'
+            method: USGridEmissionsPlugin
+tree:
+    children:
+        child-0:
+            pipeline:
+                - us-grid-emissions
+            inputs:
+                -   start-date: 2024-10-24T13
+                    end-date: 2024-10-24T16
+                    balancing-authority: CENT
+            outputs:
+                - timestamp: 2024-03-30T07:00:11.000Z
+                  balancing-authority: CENT
+                  emissions: 4
