@@ -4,6 +4,14 @@ import {ERRORS} from '../util/errors';
 
 const {APIRequestError} = ERRORS;
 
+const getEIAApiKey = (): string => {
+    const apiKey = process.env.EIA_API_KEY;
+    if (!apiKey) {
+        throw new APIRequestError('EIA_API_KEY environment variable is not set.');
+    }
+    return apiKey;
+};
+
 export const CarbonIntensityAPI = () => {
     const BASE_URL = "https://api.eia.gov/v2";
     const FUEL_TYPE_DATA_ROUTE = "electricity/rto/fuel-type-data/data";
@@ -15,11 +23,7 @@ export const CarbonIntensityAPI = () => {
      */
     const fetchFuelTypeData = async (balancingAuthority: string, startDate: string, endDate: string): Promise<HourlyFuelTypeGeneration[]> => {
         const searchParams = new URLSearchParams();
-        const apiKey = process.env.EIA_API_KEY;
-
-        if (!apiKey) {
-            throw new APIRequestError('Cannot call EIA API without EIA_API_KEY environment variable.');
-        }
+        const apiKey = getEIAApiKey();
 
         searchParams.append("start", startDate);
         searchParams.append("end", endDate);
@@ -46,20 +50,20 @@ export const CarbonIntensityAPI = () => {
                 const response = await fetch(url);
 
                 if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
+                    throw new Error(`EIA API fuel-type-data request failed: Status ${response.status}`);
                 }
 
                 const responseJson = await response.json();
 
                 if (responseJson.response && responseJson.response.errors) {
-                    throw new Error(responseJson.response.errors);
+                    throw new Error(`EIA API fuel-type-data request returned errors: responseJson.response.errors.join('; ')`);
                 }
 
                 allData = allData.concat(responseJson.response.data);
                 hasMoreData = responseJson.response.data.length === MAX_ROWS;
                 offset += MAX_ROWS;
             } catch (error) {
-                throw new APIRequestError(`Failed to fetch fuel type data: ${error}`);
+                throw new APIRequestError(`EIA API fuel-type-data request failed: ${error}`);
             }
         }
 
