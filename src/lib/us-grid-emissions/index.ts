@@ -31,7 +31,6 @@ export const USGridEmissionsPlugin = PluginFactory({
             const endDate: string = input['end-date'];
             const balancingAuthority: string = input['balancing-authority'];
             const emissions = await calculateEmissions(balancingAuthority, startDate, endDate);
-            console.log(emissions);
 
             for (const [key, value] of Object.entries(emissions)) {
                 outputs.push(

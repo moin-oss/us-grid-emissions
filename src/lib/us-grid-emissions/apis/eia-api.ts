@@ -31,29 +31,39 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("sort[1][direction]", "asc");
         searchParams.append("facets[respondent][]", balancingAuthority);
         searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("offset", String(0)); // TODO: If we need to return more than 5000 rows, we will lose data currently since we don't modify the offset
         searchParams.append("api_key", apiKey);
 
-        try {
-            const url = `${BASE_URL}/${FUEL_TYPE_DATA_ROUTE}?${searchParams.toString()}`;
-            const response = await fetch(url);
 
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
+        let offset = 0;
+        let hasMoreData = true;
+        let allData: HourlyFuelTypeGeneration[] = [];
+
+        while (hasMoreData) {
+            searchParams.set("offset", String(offset));
+
+            try {
+                const url = `${BASE_URL}/${FUEL_TYPE_DATA_ROUTE}?${searchParams.toString()}`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`API request failed with status ${response.status}`);
+                }
+
+                const responseJson = await response.json();
+
+                if (responseJson.response && responseJson.response.errors) {
+                    throw new Error(responseJson.response.errors);
+                }
+
+                allData = allData.concat(responseJson.response.data);
+                hasMoreData = responseJson.response.data.length === MAX_ROWS;
+                offset += MAX_ROWS;
+            } catch (error) {
+                throw new APIRequestError(`Failed to fetch fuel type data: ${error}`);
             }
-
-            const responseJson= await response.json();
-
-            if (responseJson.response && responseJson.response.errors) {
-                throw new Error(responseJson.response.errors);
-            }
-
-            console.log(`LENGTH: ${responseJson.response.data.length}`);
-
-            return responseJson.response.data;
-        } catch (error) {
-            throw new APIRequestError('Failed to fetch fuel type data: ${error}');
         }
+
+        return allData;
     };
 
     const calculateEmissions = async (balancingAuthority: string, startDate: string, endDate: string): Promise<Record<string, number>> => {
