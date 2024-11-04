@@ -57,22 +57,20 @@ export const CarbonIntensityAPI = () => {
     const calculateEmissions = async (balancingAuthority: string, startDate: string, endDate: string): Promise<Record<string, number>> => {
         const fuelTypeData = await fetchFuelTypeData(balancingAuthority, startDate, endDate);
 
-        // Grouping by period
+        // Group hourly generation per fuel type by period
         const groupedByPeriod = fuelTypeData.reduce((acc: Record<string, HourlyFuelTypeGeneration[]>, current: HourlyFuelTypeGeneration) => {
-            // If the period doesn't exist in the accumulator, initialize it with an empty array
             if (!acc[current.period]) {
                 acc[current.period] = [];
             }
-            // Push the current item into the array for the period
             acc[current.period].push(current);
             return acc;
         }, {});
 
-        // Calculating emissions for each period
+        // Calculate emissions for each period
         const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
             const periodData = groupedByPeriod[period];
             acc[period] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
-                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] || 0; // Default to 0 if type is not found //TODO: This isn't great, we should emit the fuel types that we can't account for
+                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] || 0; //TODO: What should we do if we don't have a fuel type? Currently the factor is set to 0, which isn't right
                 const value = parseFloat(data.value);
                 return sum + (value * emissionsFactor);
             }, 0);
