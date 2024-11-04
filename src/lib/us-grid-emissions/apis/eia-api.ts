@@ -4,7 +4,6 @@ import {CO2_EMISSIONS_FACTORS} from '../constants';
 export const CarbonIntensityAPI = () => {
     const BASE_URL = "https://api.eia.gov/v2";
     const FUEL_TYPE_DATA_ROUTE = "electricity/rto/fuel-type-data/data";
-    const API_KEY = ""; // TODO: API Key needs to come from env variable
     const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
 
     /**
@@ -13,6 +12,12 @@ export const CarbonIntensityAPI = () => {
      */
     const fetchFuelTypeData = async (balancingAuthority: string, startDate: string, endDate: string): Promise<HourlyFuelTypeGeneration[]> => {
         const searchParams = new URLSearchParams();
+        const apiKey = process.env.EIA_API_KEY;
+
+        if (!apiKey) {
+            throw new Error('Cannot call EIA API without EIA_API_KEY environment variable.');
+        }
+
         searchParams.append("start", startDate);
         searchParams.append("end", endDate);
         searchParams.append("frequency", "hourly");
@@ -24,7 +29,7 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("facets[respondent][]", balancingAuthority);
         searchParams.append("length", String(MAX_ROWS));
         searchParams.append("offset", String(0)); // TODO: This needs to change to reflect the true offset
-        searchParams.append("api_key", API_KEY);
+        searchParams.append("api_key", apiKey);
 
         try {
             const url = `${BASE_URL}/${FUEL_TYPE_DATA_ROUTE}?${searchParams.toString()}`;
