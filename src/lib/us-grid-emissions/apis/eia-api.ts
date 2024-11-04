@@ -84,7 +84,7 @@ export const CarbonIntensityAPI = () => {
             const periodData = groupedByPeriod[period];
             acc[period] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
                 if (!(data.fueltype in CO2_EMISSIONS_FACTORS)) {
-                    throw UnrecognizedFuelTypeError(`Unrecognized fuel type, cannot accurately calculate emissions: ${data.fueltype}. Please contact developers to add fuel type support.`)
+                    throw new UnrecognizedFuelTypeError(`Unrecognized fuel type, cannot accurately calculate emissions: ${data.fueltype}. Please contact developers to add fuel type support.`)
                 }
                 const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype];
                 const value = parseFloat(data.value);
