@@ -1,6 +1,6 @@
 const CUSTOM_ERRORS = [
-    'AuthorizationError',
     'APIRequestError',
+    'UnrecognizedFuelTypeError',
 ] as const;
 
 type CustomErrors = {

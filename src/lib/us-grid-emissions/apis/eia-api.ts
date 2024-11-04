@@ -2,7 +2,7 @@ import {HourlyFuelTypeGeneration} from '../types';
 import {CO2_EMISSIONS_FACTORS} from '../constants';
 import {ERRORS} from '../util/errors';
 
-const {APIRequestError} = ERRORS;
+const {APIRequestError, UnrecognizedFuelTypeError} = ERRORS;
 
 const getEIAApiKey = (): string => {
     const apiKey = process.env.EIA_API_KEY;
@@ -83,7 +83,10 @@ export const CarbonIntensityAPI = () => {
         const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
             const periodData = groupedByPeriod[period];
             acc[period] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
-                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] || 0; // TODO: What should we do if we don't have a fuel type? Currently the factor is set to 0, which isn't right
+                if (!(data.fueltype in CO2_EMISSIONS_FACTORS)) {
+                    throw UnrecognizedFuelTypeError(`Unrecognized fuel type, cannot accurately calculate emissions: ${data.fueltype}. Please contact developers to add fuel type support.`)
+                }
+                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype];
                 const value = parseFloat(data.value);
                 return sum + (value * emissionsFactor);
             }, 0);
