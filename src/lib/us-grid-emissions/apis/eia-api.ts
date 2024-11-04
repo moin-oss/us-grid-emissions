@@ -90,7 +90,7 @@ export const CarbonIntensityAPI = () => {
                     }
                     throw new UnrecognizedFuelTypeError(`Unrecognized fuel type, cannot accurately calculate emissions: ${data.fueltype}. Please contact developers to add fuel type support.`)
                 }
-                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype];
+                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] | 0;
                 const value = parseFloat(data.value);
                 return sum + (value * emissionsFactor);
             }, 0);
