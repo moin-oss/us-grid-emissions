@@ -84,6 +84,10 @@ export const CarbonIntensityAPI = () => {
             const periodData = groupedByPeriod[period];
             acc[period] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
                 if (!(data.fueltype in CO2_EMISSIONS_FACTORS)) {
+                    if (data.fueltype == 'NG') {
+                        // TODO: NG requires extra work based on chalendar's work: https://github.com/jdechalendar/gridemissions/blob/main/src/gridemissions/emissions.py#L103
+                        console.log("Found NG fuel type. Not currently supported");
+                    }
                     throw new UnrecognizedFuelTypeError(`Unrecognized fuel type, cannot accurately calculate emissions: ${data.fueltype}. Please contact developers to add fuel type support.`)
                 }
                 const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype];
