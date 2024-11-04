@@ -1,5 +1,8 @@
 import {HourlyFuelTypeGeneration} from '../types';
 import {CO2_EMISSIONS_FACTORS} from '../constants';
+import {ERRORS} from '../util/errors';
+
+const {APIRequestError} = ERRORS;
 
 export const CarbonIntensityAPI = () => {
     const BASE_URL = "https://api.eia.gov/v2";
@@ -15,7 +18,7 @@ export const CarbonIntensityAPI = () => {
         const apiKey = process.env.EIA_API_KEY;
 
         if (!apiKey) {
-            throw new Error('Cannot call EIA API without EIA_API_KEY environment variable.');
+            throw new APIRequestError('Cannot call EIA API without EIA_API_KEY environment variable.');
         }
 
         searchParams.append("start", startDate);
@@ -36,24 +39,22 @@ export const CarbonIntensityAPI = () => {
             const response = await fetch(url);
 
             if (!response.ok) {
-                console.log(response.status);
                 throw new Error(`API request failed with status ${response.status}`);
             }
+
             const responseJson= await response.json();
 
             if (responseJson.response && responseJson.response.errors) {
-                throw responseJson.response.errors;
+                throw new Error(responseJson.response.errors);
             }
 
             return responseJson.response.data;
         } catch (error) {
-            console.error("Failed to fetch fuel type data:", error);
-            throw error;
+            throw new APIRequestError('Failed to fetch fuel type data: ${error}');
         }
     };
 
     const calculateEmissions = async (balancingAuthority: string, startDate: string, endDate: string): Promise<Record<string, number>> => {
-        // {"period":"2024-10-24T15","respondent":"CAL","respondent-name":"California","fueltype":"COL","type-name":"Coal","value":"552","value-units":"megawatthours"}
         const fuelTypeData = await fetchFuelTypeData(balancingAuthority, startDate, endDate);
 
         // Grouping by period
