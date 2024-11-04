@@ -31,7 +31,7 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("sort[1][direction]", "asc");
         searchParams.append("facets[respondent][]", balancingAuthority);
         searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("offset", String(0)); // TODO: This needs to change to reflect the true offset
+        searchParams.append("offset", String(0)); // TODO: If we need to return more than 5000 rows, we will lose data currently since we don't modify the offset
         searchParams.append("api_key", apiKey);
 
         try {
@@ -47,6 +47,8 @@ export const CarbonIntensityAPI = () => {
             if (responseJson.response && responseJson.response.errors) {
                 throw new Error(responseJson.response.errors);
             }
+
+            console.log(`LENGTH: ${responseJson.response.data.length}`);
 
             return responseJson.response.data;
         } catch (error) {
@@ -70,7 +72,7 @@ export const CarbonIntensityAPI = () => {
         const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
             const periodData = groupedByPeriod[period];
             acc[period] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
-                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] || 0; //TODO: What should we do if we don't have a fuel type? Currently the factor is set to 0, which isn't right
+                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] || 0; // TODO: What should we do if we don't have a fuel type? Currently the factor is set to 0, which isn't right
                 const value = parseFloat(data.value);
                 return sum + (value * emissionsFactor);
             }, 0);
