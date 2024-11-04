@@ -37,7 +37,6 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("length", String(MAX_ROWS));
         searchParams.append("api_key", apiKey);
 
-
         let offset = 0;
         let hasMoreData = true;
         let allData: HourlyFuelTypeGeneration[] = [];
@@ -48,13 +47,11 @@ export const CarbonIntensityAPI = () => {
             try {
                 const url = `${BASE_URL}/${FUEL_TYPE_DATA_ROUTE}?${searchParams.toString()}`;
                 const response = await fetch(url);
-
                 if (!response.ok) {
                     throw new Error(`EIA API fuel-type-data request failed: Status ${response.status}`);
                 }
 
                 const responseJson = await response.json();
-
                 if (responseJson.response && responseJson.response.errors) {
                     throw new Error(`EIA API fuel-type-data request returned errors: responseJson.response.errors.join('; ')`);
                 }
