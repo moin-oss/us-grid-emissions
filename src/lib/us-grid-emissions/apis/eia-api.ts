@@ -79,6 +79,8 @@ export const CarbonIntensityAPI = () => {
             return acc;
         }, {});
 
+        console.log(groupedByPeriod);
+
         // Calculate emissions for each period
         const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
             const periodData = groupedByPeriod[period];

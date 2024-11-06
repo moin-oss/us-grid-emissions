@@ -15,6 +15,6 @@ tree:
                 compute:
                     - us-grid-emissions
             inputs:
-                -   start-date: 2024-10-24T13
-                    end-date: 2024-10-24T16
+                -   start-date: 2024-10-24T00
+                    end-date: 2024-10-25T00
                     balancing-authority: CENT

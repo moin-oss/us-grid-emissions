@@ -20,10 +20,7 @@ export const USGridEmissionsPlugin = PluginFactory({
 
         return input;
     },
-    implementation: async (inputs: PluginParams[], config: ConfigParams) => {
-        const inputAndConfig = Object.assign({}, inputs, config);
-        inputAndConfig;
-
+    implementation: async (inputs: PluginParams[], _config: ConfigParams) => {
         let outputs: USGridEmissionsParams[] = [];
 
         for await (const input of inputs) {
