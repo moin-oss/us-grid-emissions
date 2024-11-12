@@ -1,6 +1,7 @@
 import {HourlyFuelTypeGeneration} from '../types';
 import {CO2_EMISSIONS_FACTORS} from '../util/constants';
 import {ERRORS} from '../util/errors';
+import * as moment from 'moment';
 
 const {APIRequestError, UnrecognizedFuelTypeError} = ERRORS;
 
@@ -18,16 +19,20 @@ export const CarbonIntensityAPI = () => {
     const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
     const API_KEY = getEIAApiKey();
 
+    const formatTimestamp = (d: Date): string => {
+        return moment(d).format('YYYY-MM-DDTHH');
+    };
+
     /**
      * Fetches hourly net generation for the given balancing authority by energy source.
      * Source: Form EIA-930 Product: Hourly Electric Grid Monitor.
      */
-    const fetchFuelTypeData = async (balancingAuthority: string, startDate: string, endDate: string): Promise<HourlyFuelTypeGeneration[]> => {
+    const fetchFuelTypeData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyFuelTypeGeneration[]> => {
         const searchParams = new URLSearchParams();
 
-        searchParams.append("start", startDate);
-        searchParams.append("end", endDate);
-        searchParams.append("frequency", "hourly");
+        searchParams.append("start", formatTimestamp(startDate));
+        searchParams.append("end", formatTimestamp(endDate));
+        searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
         searchParams.append("data[0]", "value");
         searchParams.append("sort[0][column]", "period");
         searchParams.append("sort[0][direction]", "asc");
@@ -67,7 +72,7 @@ export const CarbonIntensityAPI = () => {
         return allData;
     };
 
-    const calculateEmissions = async (balancingAuthority: string, startDate: string, endDate: string): Promise<Record<string, number>> => {
+    const calculateEmissions = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<Record<string, number>> => {
         const fuelTypeData = await fetchFuelTypeData(balancingAuthority, startDate, endDate);
 
         // Group hourly generation per fuel type by period
@@ -82,7 +87,8 @@ export const CarbonIntensityAPI = () => {
         // Calculate emissions for each period
         const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
             const periodData = groupedByPeriod[period];
-            acc[period] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
+            const isoTimestampForPeriod = `${period}:00Z`
+            acc[isoTimestampForPeriod] = periodData.reduce((sum: number, data: HourlyFuelTypeGeneration) => {
                 let fuelType = data.fueltype;
                 if (fuelType === 'NG') {
                     fuelType = 'GAS';
@@ -99,7 +105,6 @@ export const CarbonIntensityAPI = () => {
         }, {});
 
         return emissionsByPeriod;
-
     }
 
     return {
