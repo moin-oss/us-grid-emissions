@@ -1,1 +1,1 @@
-export {MyCustomPlugin} from './my-custom-plugin';
+export {USGridEmissionsPlugin} from './us-grid-emissions';

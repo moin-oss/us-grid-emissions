@@ -1,0 +1,95 @@
+name: basic-demo
+description:
+tags:
+initialize:
+    plugins:
+        us-grid-emissions:
+            method: USGridEmissionsPlugin
+            path: 'us-grid-emissions'
+tree:
+    children:
+        child-0:
+            pipeline:
+                - us-grid-emissions
+            inputs:
+                -   start-date: 2024-10-24T00
+                    end-date: 2024-10-25T00
+                    balancing-authority: CENT
+            outputs:
+                -   start-date: 2024-10-24T00
+                    end-date: 2024-10-25T00
+                    balancing-authority: CENT
+                    timestamp: 2024-10-24T00
+                    emissions: 11211106
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T01
+                    emissions: 10667495
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T02
+                    emissions: 9405199
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T03
+                    emissions: 8538616
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T04
+                    emissions: 7369435
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T05
+                    emissions: 6391195
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T06
+                    emissions: 5975847
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T07
+                    emissions: 5710675
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T08
+                    emissions: 5648352
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T09
+                    emissions: 5643672
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T10
+                    emissions: 5463685
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T11
+                    emissions: 5333541
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T12
+                    emissions: 5578221
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T13
+                    emissions: 6070895
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T14
+                    emissions: 6150363
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T15
+                    emissions: 6377006
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T16
+                    emissions: 7247743
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T17
+                    emissions: 7813130
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T18
+                    emissions: 7946885
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T19
+                    emissions: 8066182
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T20
+                    emissions: 8171767
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T21
+                    emissions: 8822590
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T22
+                    emissions: 8774047
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-24T23
+                    emissions: 8208525
+                -   balancing-authority: CENT
+                    timestamp: 2024-10-25T00
+                    emissions: 7756817
