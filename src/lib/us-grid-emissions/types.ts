@@ -1,5 +1,3 @@
-export type YourGlobalConfig = Record<string, any>;
-
 export type USGridEmissionsParams = Record<string, any>;
 
 export type USGridEmissionsInterface = {

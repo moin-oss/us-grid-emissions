@@ -16,6 +16,7 @@ export const CarbonIntensityAPI = () => {
     const BASE_URL = "https://api.eia.gov/v2";
     const FUEL_TYPE_DATA_ROUTE = "electricity/rto/fuel-type-data/data";
     const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
+    const API_KEY = getEIAApiKey();
 
     /**
      * Fetches hourly net generation for the given balancing authority by energy source.
@@ -23,7 +24,6 @@ export const CarbonIntensityAPI = () => {
      */
     const fetchFuelTypeData = async (balancingAuthority: string, startDate: string, endDate: string): Promise<HourlyFuelTypeGeneration[]> => {
         const searchParams = new URLSearchParams();
-        const apiKey = getEIAApiKey();
 
         searchParams.append("start", startDate);
         searchParams.append("end", endDate);
@@ -35,7 +35,7 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("sort[1][direction]", "asc");
         searchParams.append("facets[respondent][]", balancingAuthority);
         searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("api_key", apiKey);
+        searchParams.append("api_key", API_KEY);
 
         let offset = 0;
         let hasMoreData = true;
@@ -53,7 +53,7 @@ export const CarbonIntensityAPI = () => {
 
                 const responseJson = await response.json();
                 if (responseJson.response && responseJson.response.errors) {
-                    throw new Error(`EIA API fuel-type-data request returned errors: responseJson.response.errors.join('; ')`);
+                    throw new Error(`EIA API fuel-type-data request returned errors: ${responseJson.response.errors.join('; ')}`);
                 }
 
                 allData = allData.concat(responseJson.response.data);
@@ -78,8 +78,6 @@ export const CarbonIntensityAPI = () => {
             acc[current.period].push(current);
             return acc;
         }, {});
-
-        console.log(groupedByPeriod);
 
         // Calculate emissions for each period
         const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
