@@ -173,6 +173,7 @@ export const CarbonIntensityAPI = () => {
             const isoTimestampForPeriod = `${period}:00Z`
             acc[isoTimestampForPeriod] = periodData.reduce((sum: number, data: HourlyFuelTypeGenerationData) => {
                 let fuelType = data.fueltype;
+                // Rename "NG" to "GAS" to avoid confusion with net generation
                 if (fuelType === 'NG') {
                     fuelType = 'GAS';
                 }
