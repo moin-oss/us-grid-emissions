@@ -43,7 +43,7 @@ export const CarbonIntensityAPI = () => {
 
                 const responseJson = await response.json();
                 if (responseJson.response && responseJson.response.errors) {
-                    throw new Error(`Errors returnedx: ${responseJson.response.errors.join('; ')}`);
+                    throw new Error(`Response errors: ${responseJson.response.errors.join('; ')}`);
                 }
 
                 allData = allData.concat(responseJson.response.data);
