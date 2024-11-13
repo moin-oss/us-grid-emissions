@@ -1,6 +1,6 @@
 # us-grid-emissions
 
-`us-grid-emissions` is an [IF](https://github.com/Green-Software-Foundation/if) plugin that calculate the carbon emissions per hour of a given US balancing authority.
+`us-grid-emissions` is an [IF](https://github.com/Green-Software-Foundation/if) plugin that calculate the carbon emissions per hour amongst all US balancing authorities.
 
 ## Implementation
 
