@@ -57,6 +57,13 @@ export const CarbonIntensityAPI = () => {
         return allData;
     };
 
+    /**
+     * Fetch hourly demand, net generation, and interchange by balancing authority within a date range.
+     * Source: Form EIA-930 Product: Hourly Electric Grid Monitor
+     * @param balancingAuthority balancing authority to get data for
+     * @param startDate start date, inclusive
+     * @param endDate end date, inclusive
+     */
     const fetchRegionData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyRegionData[]> => {
         const searchParams = new URLSearchParams();
 
@@ -80,6 +87,39 @@ export const CarbonIntensityAPI = () => {
         return await fetchData(REGION_DATA_ROUTE, searchParams);
     }
 
+    /**
+     * Fetches hourly net generation for the given balancing authority by energy source.
+     * Source: Form EIA-930 Product: Hourly Electric Grid Monitor.
+     * @param balancingAuthority balancing authority to get data for
+     * @param startDate start date, inclusive
+     * @param endDate end date, inclusive
+     */
+    const fetchFuelTypeData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> => {
+        const searchParams = new URLSearchParams();
+
+        searchParams.append("start", formatTimestamp(startDate));
+        searchParams.append("end", formatTimestamp(endDate));
+        searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
+        searchParams.append("data[0]", "value");
+        searchParams.append("sort[0][column]", "period");
+        searchParams.append("sort[0][direction]", "asc");
+        searchParams.append("sort[1][column]", "respondent");
+        searchParams.append("sort[1][direction]", "asc");
+        searchParams.append("facets[respondent][]", balancingAuthority);
+        searchParams.append("length", String(MAX_ROWS));
+        searchParams.append("api_key", API_KEY);
+
+        return await fetchData(FUEL_TYPE_DATA_ROUTE, searchParams);
+    };
+
+    /**
+     * Get hourly interchange between neighboring balancing authorities.
+     * Source: Form EIA-930 Product: Hourly Electric Grid Monitor
+     * @param balancingAuthority balancing authority to get data for. Used in two separate EIA API calls,
+     * one filtered by toba and one filtered by fromba
+     * @param startDate start date, inclusive
+     * @param endDate end date, inclusive
+     */
     const fetchInterchangeData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyInterchangeData[]> => {
         const fromBaSearchParams = createInterchangeSearchParams(true, balancingAuthority, startDate, endDate);
         const fromBaData: HourlyInterchangeData[] = await fetchData(INTERCHANGE_DATA_ROUTE, fromBaSearchParams);
@@ -92,6 +132,7 @@ export const CarbonIntensityAPI = () => {
 
     const createInterchangeSearchParams = (isFromBa: boolean, balancingAuthority: string, startDate: Date, endDate: Date): URLSearchParams => {
         const searchParams = new URLSearchParams();
+
         searchParams.append("start", formatTimestamp(startDate));
         searchParams.append("end", formatTimestamp(endDate));
         searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
@@ -113,28 +154,6 @@ export const CarbonIntensityAPI = () => {
 
         return searchParams;
     }
-
-    /**
-     * Fetches hourly net generation for the given balancing authority by energy source.
-     * Source: Form EIA-930 Product: Hourly Electric Grid Monitor.
-     */
-    const fetchFuelTypeData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> => {
-        const searchParams = new URLSearchParams();
-
-        searchParams.append("start", formatTimestamp(startDate));
-        searchParams.append("end", formatTimestamp(endDate));
-        searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
-        searchParams.append("data[0]", "value");
-        searchParams.append("sort[0][column]", "period");
-        searchParams.append("sort[0][direction]", "asc");
-        searchParams.append("sort[1][column]", "respondent");
-        searchParams.append("sort[1][direction]", "asc");
-        searchParams.append("facets[respondent][]", balancingAuthority);
-        searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("api_key", API_KEY);
-
-        return await fetchData(FUEL_TYPE_DATA_ROUTE, searchParams);
-    };
 
     const calculateEmissions = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<Record<string, number>> => {
         const fuelTypeData = await fetchFuelTypeData(balancingAuthority, startDate, endDate);
