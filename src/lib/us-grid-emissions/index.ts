@@ -6,7 +6,7 @@ import {PluginParams, ConfigParams} from '@grnsft/if-core/types';
 
 const calculateEmissions = async (balancingAuthority: string, startDate: Date, endDate: Date) => {
     const eiaApi = CarbonIntensityAPI();
-    return eiaApi.calculateEmissions(balancingAuthority, startDate, endDate);
+    return await eiaApi.calculateEmissions(balancingAuthority, startDate, endDate);
 };
 
 export const USGridEmissionsPlugin = PluginFactory({
