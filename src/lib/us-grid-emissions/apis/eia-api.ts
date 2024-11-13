@@ -1,25 +1,24 @@
 import {HourlyFuelTypeGenerationData, HourlyInterchangeData, HourlyRegionData} from '../types';
-import {CO2_EMISSIONS_FACTORS} from '../util/constants';
 import {ERRORS} from '../util/errors';
 import * as moment from 'moment';
 
-const {APIRequestError, UnrecognizedFuelTypeError} = ERRORS;
+const {APIRequestError} = ERRORS;
 
-const getEIAApiKey = (): string => {
-    const apiKey = process.env.EIA_API_KEY;
-    if (!apiKey) {
-        throw new APIRequestError('EIA_API_KEY environment variable is not set.');
+export class EiaApi {
+    private readonly BASE_URL = "https://api.eia.gov/v2";
+    private readonly FUEL_TYPE_DATA_ROUTE = "electricity/rto/fuel-type-data/data";
+    private readonly INTERCHANGE_DATA_ROUTE = "electricity/rto/interchange-data/data";
+    private readonly REGION_DATA_ROUTE = "electricity/rto/region-data/data";
+    private readonly MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
+    private apiKey: string;
+
+    constructor() {
+        const apiKey = process.env.EIA_API_KEY;
+        if (!apiKey) {
+            throw new APIRequestError('EIA_API_KEY environment variable is not set.');
+        }
+        this.apiKey = apiKey;
     }
-    return apiKey;
-};
-
-export const CarbonIntensityAPI = () => {
-    const BASE_URL = "https://api.eia.gov/v2";
-    const FUEL_TYPE_DATA_ROUTE = "electricity/rto/fuel-type-data/data";
-    const INTERCHANGE_DATA_ROUTE = "electricity/rto/interchange-data/data";
-    const REGION_DATA_ROUTE = "electricity/rto/region-data/data";
-    const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
-    const API_KEY = getEIAApiKey();
 
     /**
      * Fetch hourly demand, net generation, and interchange by balancing authority within a date range.
@@ -28,11 +27,11 @@ export const CarbonIntensityAPI = () => {
      * @param startDate start date, inclusive
      * @param endDate end date, inclusive
      */
-    const fetchRegionData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyRegionData[]> => {
+    async fetchRegionData(balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyRegionData[]> {
         const searchParams = new URLSearchParams();
 
-        searchParams.append("start", formatTimestamp(startDate));
-        searchParams.append("end", formatTimestamp(endDate));
+        searchParams.append("start", this.formatTimestamp(startDate));
+        searchParams.append("end", this.formatTimestamp(endDate));
         searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
         searchParams.append("data[0]", "value");
         searchParams.append("sort[0][column]", "period");
@@ -42,13 +41,13 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("sort[2][column]", "type");
         searchParams.append("sort[2][direction]", "asc");
         searchParams.append("facets[respondent][]", balancingAuthority);
-        searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("api_key", API_KEY);
+        searchParams.append("length", String(this.MAX_ROWS));
+        searchParams.append("api_key", this.apiKey);
         searchParams.append("facets[type][0]", "D");
         searchParams.append("facets[type][1]", "NG");
         searchParams.append("facets[type][2]", "TI");
 
-        return await fetchData(REGION_DATA_ROUTE, searchParams);
+        return await this.fetchData(this.REGION_DATA_ROUTE, searchParams);
     }
 
     /**
@@ -58,11 +57,11 @@ export const CarbonIntensityAPI = () => {
      * @param startDate start date, inclusive
      * @param endDate end date, inclusive
      */
-    const fetchFuelTypeData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> => {
+    async fetchFuelTypeData(balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> {
         const searchParams = new URLSearchParams();
 
-        searchParams.append("start", formatTimestamp(startDate));
-        searchParams.append("end", formatTimestamp(endDate));
+        searchParams.append("start", this.formatTimestamp(startDate));
+        searchParams.append("end", this.formatTimestamp(endDate));
         searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
         searchParams.append("data[0]", "value");
         searchParams.append("sort[0][column]", "period");
@@ -70,10 +69,10 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("sort[1][column]", "respondent");
         searchParams.append("sort[1][direction]", "asc");
         searchParams.append("facets[respondent][]", balancingAuthority);
-        searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("api_key", API_KEY);
+        searchParams.append("length", String(this.MAX_ROWS));
+        searchParams.append("api_key", this.apiKey);
 
-        return await fetchData(FUEL_TYPE_DATA_ROUTE, searchParams);
+        return await this.fetchData(this.FUEL_TYPE_DATA_ROUTE, searchParams);
     };
 
     /**
@@ -84,21 +83,21 @@ export const CarbonIntensityAPI = () => {
      * @param startDate start date, inclusive
      * @param endDate end date, inclusive
      */
-    const fetchInterchangeData = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyInterchangeData[]> => {
-        const fromBaSearchParams = createInterchangeSearchParams(true, balancingAuthority, startDate, endDate);
-        const fromBaData: HourlyInterchangeData[] = await fetchData(INTERCHANGE_DATA_ROUTE, fromBaSearchParams);
+    async fetchInterchangeData(balancingAuthority: string, startDate: Date, endDate: Date): Promise<HourlyInterchangeData[]> {
+        const fromBaSearchParams = this.createInterchangeSearchParams(true, balancingAuthority, startDate, endDate);
+        const fromBaData: HourlyInterchangeData[] = await this.fetchData(this.INTERCHANGE_DATA_ROUTE, fromBaSearchParams);
 
-        const toBaSearchParams = createInterchangeSearchParams(false, balancingAuthority, startDate, endDate);
-        const toBaData: HourlyInterchangeData[] = await fetchData(INTERCHANGE_DATA_ROUTE, toBaSearchParams);
+        const toBaSearchParams = this.createInterchangeSearchParams(false, balancingAuthority, startDate, endDate);
+        const toBaData: HourlyInterchangeData[] = await this.fetchData(this.INTERCHANGE_DATA_ROUTE, toBaSearchParams);
 
         return [...fromBaData, ...toBaData];
     };
 
-    const createInterchangeSearchParams = (isFromBa: boolean, balancingAuthority: string, startDate: Date, endDate: Date): URLSearchParams => {
+    private createInterchangeSearchParams(isFromBa: boolean, balancingAuthority: string, startDate: Date, endDate: Date): URLSearchParams {
         const searchParams = new URLSearchParams();
 
-        searchParams.append("start", formatTimestamp(startDate));
-        searchParams.append("end", formatTimestamp(endDate));
+        searchParams.append("start", this.formatTimestamp(startDate));
+        searchParams.append("end", this.formatTimestamp(endDate));
         searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
         searchParams.append("data[0]", "value");
         searchParams.append("sort[0][column]", "period");
@@ -107,8 +106,8 @@ export const CarbonIntensityAPI = () => {
         searchParams.append("sort[1][direction]", "asc");
         searchParams.append("sort[2][column]", "toba");
         searchParams.append("sort[2][direction]", "asc");
-        searchParams.append("length", String(MAX_ROWS));
-        searchParams.append("api_key", API_KEY);
+        searchParams.append("length", String(this.MAX_ROWS));
+        searchParams.append("api_key", this.apiKey);
 
         if (isFromBa) {
             searchParams.append("facets[fromba][]", balancingAuthority);
@@ -119,11 +118,11 @@ export const CarbonIntensityAPI = () => {
         return searchParams;
     }
 
-    const formatTimestamp = (d: Date): string => {
+    private formatTimestamp(d: Date): string {
         return moment(d).format('YYYY-MM-DDTHH');
     };
 
-    const fetchData = async (route: string, searchParams: URLSearchParams): Promise<any[]> => {
+    private async fetchData (route: string, searchParams: URLSearchParams): Promise<any[]> {
         const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
         let offset = 0;
         let hasMoreData = true;
@@ -133,7 +132,7 @@ export const CarbonIntensityAPI = () => {
             searchParams.set("offset", String(offset));
 
             try {
-                const url = `${BASE_URL}/${route}?${searchParams.toString()}`;
+                const url = `${this.BASE_URL}/${route}?${searchParams.toString()}`;
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`Status ${response.status}`);
@@ -153,48 +152,5 @@ export const CarbonIntensityAPI = () => {
         }
 
         return allData;
-    };
-
-    const calculateEmissions = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<Record<string, number>> => {
-        const fuelTypeData = await fetchFuelTypeData(balancingAuthority, startDate, endDate);
-
-        // Group hourly generation per fuel type by period
-        const groupedByPeriod = fuelTypeData.reduce((acc: Record<string, HourlyFuelTypeGenerationData[]>, current: HourlyFuelTypeGenerationData) => {
-            if (!acc[current.period]) {
-                acc[current.period] = [];
-            }
-            acc[current.period].push(current);
-            return acc;
-        }, {});
-
-        // Calculate emissions for each period
-        const emissionsByPeriod = Object.keys(groupedByPeriod).reduce((acc: Record<string, number>, period: string) => {
-            const periodData = groupedByPeriod[period];
-            const isoTimestampForPeriod = `${period}:00Z`
-            acc[isoTimestampForPeriod] = periodData.reduce((sum: number, data: HourlyFuelTypeGenerationData) => {
-                let fuelType = data.fueltype;
-                // Rename "NG" to "GAS" to avoid confusion with net generation
-                if (fuelType === 'NG') {
-                    fuelType = 'GAS';
-                }
-
-                if (!(fuelType in CO2_EMISSIONS_FACTORS)) {
-                    throw new UnrecognizedFuelTypeError(`Unrecognized fuel type, cannot accurately calculate emissions: ${data.fueltype}. Please contact developers to add fuel type support.`)
-                }
-                const emissionsFactor = CO2_EMISSIONS_FACTORS[data.fueltype] | 0;
-                const value = parseFloat(data.value);
-                return sum + (value * emissionsFactor);
-            }, 0);
-            return acc;
-        }, {});
-
-        return emissionsByPeriod;
-    }
-
-    return {
-        calculateEmissions,
-        fetchFuelTypeData,
-        fetchInterchangeData,
-        fetchRegionData
     };
 };
