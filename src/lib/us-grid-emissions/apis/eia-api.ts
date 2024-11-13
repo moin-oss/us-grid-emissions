@@ -107,7 +107,7 @@ export class EiaApi {
         return searchParams;
     };
 
-    private formatTimestamp(d: Date): string {
+    formatTimestamp(d: Date): string {
         return moment(d).format('YYYY-MM-DDTHH');
     };
 
