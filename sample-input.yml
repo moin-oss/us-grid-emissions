@@ -17,4 +17,3 @@ tree:
             inputs:
                 - timestamp: 2024-09-09T00:00Z
                   duration: 86400  # 1 day
-                  balancing-authority: CENT

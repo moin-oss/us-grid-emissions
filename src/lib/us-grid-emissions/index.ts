@@ -4,9 +4,9 @@ import { USGridEmissionsParams } from './types';
 import { PluginFactory } from '@grnsft/if-core/interfaces';
 import {PluginParams, ConfigParams} from '@grnsft/if-core/types';
 
-const calculateEmissions = async (balancingAuthority: string, startDate: Date, endDate: Date) => {
+const calculateEmissions = async ( startDate: Date, endDate: Date) => {
     const eiaApi = CarbonIntensityAPI();
-    return await eiaApi.calculateEmissions(balancingAuthority, startDate, endDate);
+    return await eiaApi.calculateEmissions(startDate, endDate);
 };
 
 export const USGridEmissionsPlugin = PluginFactory({
@@ -26,15 +26,13 @@ export const USGridEmissionsPlugin = PluginFactory({
         for await (const input of inputs) {
             const startDate = new Date(input['timestamp']);
             const endDate = new Date(startDate.getTime() + input['duration'] * 1000);
-            const balancingAuthority: string = input['balancing-authority'];
-            const emissions = await calculateEmissions(balancingAuthority, startDate, endDate);
+            const emissions = await calculateEmissions(startDate, endDate);
 
             for (const [key, value] of Object.entries(emissions)) {
                 outputs.push(
                     {
                         timestamp: `${key}`,
                         duration: 3600,
-                        'balancing-authority': balancingAuthority,
                         emissions: value,
                     }
                 )
