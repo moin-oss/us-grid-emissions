@@ -21,42 +21,6 @@ export const CarbonIntensityAPI = () => {
     const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
     const API_KEY = getEIAApiKey();
 
-    const formatTimestamp = (d: Date): string => {
-        return moment(d).format('YYYY-MM-DDTHH');
-    };
-
-    const fetchData = async (route: string, searchParams: URLSearchParams): Promise<any[]> => {
-        const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
-        let offset = 0;
-        let hasMoreData = true;
-        let allData: any[] = [];
-
-        while (hasMoreData) {
-            searchParams.set("offset", String(offset));
-
-            try {
-                const url = `${BASE_URL}/${route}?${searchParams.toString()}`;
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error(`Status ${response.status}`);
-                }
-
-                const responseJson = await response.json();
-                if (responseJson.response && responseJson.response.errors) {
-                    throw new Error(`Response errors: ${responseJson.response.errors.join('; ')}`);
-                }
-
-                allData = allData.concat(responseJson.response.data);
-                hasMoreData = responseJson.response.data.length === MAX_ROWS;
-                offset += MAX_ROWS;
-            } catch (error) {
-                throw new APIRequestError(`EIA API request failed: ${error}`);
-            }
-        }
-
-        return allData;
-    };
-
     /**
      * Fetch hourly demand, net generation, and interchange by balancing authority within a date range.
      * Source: Form EIA-930 Product: Hourly Electric Grid Monitor
@@ -154,6 +118,42 @@ export const CarbonIntensityAPI = () => {
 
         return searchParams;
     }
+
+    const formatTimestamp = (d: Date): string => {
+        return moment(d).format('YYYY-MM-DDTHH');
+    };
+
+    const fetchData = async (route: string, searchParams: URLSearchParams): Promise<any[]> => {
+        const MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
+        let offset = 0;
+        let hasMoreData = true;
+        let allData: any[] = [];
+
+        while (hasMoreData) {
+            searchParams.set("offset", String(offset));
+
+            try {
+                const url = `${BASE_URL}/${route}?${searchParams.toString()}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Status ${response.status}`);
+                }
+
+                const responseJson = await response.json();
+                if (responseJson.response && responseJson.response.errors) {
+                    throw new Error(`Response errors: ${responseJson.response.errors.join('; ')}`);
+                }
+
+                allData = allData.concat(responseJson.response.data);
+                hasMoreData = responseJson.response.data.length === MAX_ROWS;
+                offset += MAX_ROWS;
+            } catch (error) {
+                throw new APIRequestError(`EIA API request failed: ${error}`);
+            }
+        }
+
+        return allData;
+    };
 
     const calculateEmissions = async (balancingAuthority: string, startDate: Date, endDate: Date): Promise<Record<string, number>> => {
         const fuelTypeData = await fetchFuelTypeData(balancingAuthority, startDate, endDate);
