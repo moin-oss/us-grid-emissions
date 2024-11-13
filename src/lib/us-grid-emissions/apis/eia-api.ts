@@ -79,16 +79,6 @@ export class EiaApi {
      * @param endDate end date, inclusive
      */
     async fetchInterchangeData(startDate: Date, endDate: Date): Promise<HourlyInterchangeData[]> {
-        const fromBaSearchParams = this.createInterchangeSearchParams(startDate, endDate);
-        const fromBaData: HourlyInterchangeData[] = await this.fetchData(this.INTERCHANGE_DATA_ROUTE, fromBaSearchParams);
-
-        const toBaSearchParams = this.createInterchangeSearchParams(startDate, endDate);
-        const toBaData: HourlyInterchangeData[] = await this.fetchData(this.INTERCHANGE_DATA_ROUTE, toBaSearchParams);
-
-        return [...fromBaData, ...toBaData];
-    };
-
-    private createInterchangeSearchParams(startDate: Date, endDate: Date): URLSearchParams {
         const searchParams = new URLSearchParams();
 
         searchParams.append("start", this.formatTimestamp(startDate));
@@ -104,7 +94,7 @@ export class EiaApi {
         searchParams.append("length", String(this.MAX_ROWS));
         searchParams.append("api_key", this.apiKey);
 
-        return searchParams;
+        return await this.fetchData(this.INTERCHANGE_DATA_ROUTE, searchParams);
     };
 
     formatTimestamp(d: Date): string {

@@ -25,6 +25,13 @@ export const USGridEmissionsPlugin = PluginFactory({
         // Fetch 24h of EIA data
         const eiaApi = new EiaApi();
         const interchangeData = await eiaApi.fetchInterchangeData(startDate, endDate);
+        const regionData = await eiaApi.fetchRegionData(startDate, endDate);
+        const fuelTypeData = await eiaApi.fetchFuelTypeData(startDate, endDate);
+
+        // TODO remove these eventually
+        console.log(`Fetched ${interchangeData.length} rows of interchange data`);
+        console.log(`Fetched ${regionData.length} rows of region data`);
+        console.log(`Fetched ${fuelTypeData.length} rows of fuel type data`);
         
         // For each hour, calculate emissions
         const calc = new EmissionsCalculator(eiaApi, startDate, endDate);
