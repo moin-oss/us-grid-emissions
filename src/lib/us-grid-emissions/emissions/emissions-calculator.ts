@@ -1,4 +1,3 @@
-// import pl, { DataFrame } from 'nodejs-polars';
 import { HourlyFuelTypeGenerationData, HourlyInterchangeData } from "../types";
 import { BALANCING_AUTHORITIES, CO2_EMISSIONS_FACTORS } from "../util/constants";
 import { ERRORS } from '../util/errors';
