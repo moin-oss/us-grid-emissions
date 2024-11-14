@@ -1,5 +1,6 @@
 const CUSTOM_ERRORS = [
     'APIRequestError',
+    'IllConditionedError',
     'UnrecognizedFuelTypeError',
 ] as const;
 
