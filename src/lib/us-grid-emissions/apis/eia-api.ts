@@ -1,4 +1,4 @@
-import {HourlyFuelTypeGenerationData, HourlyInterchangeData, HourlyRegionData} from '../types';
+import {HourlyFuelTypeGenerationData, HourlyInterchangeData} from '../types';
 import {ERRORS} from '../util/errors';
 import * as moment from 'moment';
 
@@ -8,7 +8,6 @@ export class EiaApi {
     private readonly BASE_URL = "https://api.eia.gov/v2";
     private readonly FUEL_TYPE_DATA_ROUTE = "electricity/rto/fuel-type-data/data";
     private readonly INTERCHANGE_DATA_ROUTE = "electricity/rto/interchange-data/data";
-    private readonly REGION_DATA_ROUTE = "electricity/rto/region-data/data";
     private readonly MAX_ROWS = 5000; // Max number of rows we can request from the API in one call
     private apiKey: string;
 
@@ -21,40 +20,12 @@ export class EiaApi {
     }
 
     /**
-     * Fetch hourly demand, net generation, and interchange by balancing authority within a date range.
-     * Source: Form EIA-930 Product: Hourly Electric Grid Monitor
-     * @param startDate start date, inclusive
-     * @param endDate end date, inclusive
-     */
-    async fetchRegionData(startDate: Date, endDate: Date): Promise<HourlyRegionData[]> {
-        const searchParams = new URLSearchParams();
-
-        searchParams.append("start", this.formatTimestamp(startDate));
-        searchParams.append("end", this.formatTimestamp(endDate));
-        searchParams.append("frequency", "hourly");  // Expect UTC timestamps as 'YYYY-MM-DDTHH'
-        searchParams.append("data[0]", "value");
-        searchParams.append("sort[0][column]", "period");
-        searchParams.append("sort[0][direction]", "asc");
-        searchParams.append("sort[1][column]", "respondent");
-        searchParams.append("sort[1][direction]", "asc");
-        searchParams.append("sort[2][column]", "type");
-        searchParams.append("sort[2][direction]", "asc");
-        searchParams.append("length", String(this.MAX_ROWS));
-        searchParams.append("api_key", this.apiKey);
-        searchParams.append("facets[type][0]", "D");
-        searchParams.append("facets[type][1]", "NG");
-        searchParams.append("facets[type][2]", "TI");
-
-        return await this.fetchData(this.REGION_DATA_ROUTE, searchParams);
-    }
-
-    /**
      * Fetches hourly net generation by BA and energy source.
      * Source: Form EIA-930 Product: Hourly Electric Grid Monitor.
      * @param startDate start date, inclusive
      * @param endDate end date, inclusive
      */
-    async fetchFuelTypeData(startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> {
+    async fetchGenerationData(startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> {
         const searchParams = new URLSearchParams();
 
         searchParams.append("start", this.formatTimestamp(startDate));
