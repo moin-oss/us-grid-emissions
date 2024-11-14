@@ -1,7 +1,8 @@
 import { HourlyFuelTypeGenerationData, HourlyInterchangeData } from "../types";
 import { BALANCING_AUTHORITIES, CO2_EMISSIONS_FACTORS } from "../util/constants";
 import { ERRORS } from '../util/errors';
-const {UnrecognizedFuelTypeError} = ERRORS;
+import {add, diag, inv, lusolve, map, matrix, Matrix, multiply, norm, subtract, sum} from "mathjs";
+const {IllConditionedError, UnrecognizedFuelTypeError} = ERRORS;
 
 export class EmissionsCalculator {
     constructor(
@@ -61,7 +62,24 @@ export class EmissionsCalculator {
     }
 
     getCarbonIntensities(emissions: number[], interchange: number[][], generation: number[]): number[] {
+        /**
+         * Returns the emissions intensity by solving a linear system
+         */
         console.log(`Calculating emissions... ${emissions.length} ${interchange.length} ${generation.length}`);
-        return [];
+        const interchangeMatrix: Matrix = matrix(interchange);
+        const imports = map(multiply(-1, interchangeMatrix), x => Math.max(0, x))
+        const totalImports = sum(imports, 1) as number[];
+        const A = subtract(diag(add(generation, totalImports)), imports)
+        if (this.cond(A) > (1.0/Number.EPSILON)) {
+            throw new IllConditionedError(`Linear system of ${A} is not solvable`)
+        }
+        return lusolve(A, emissions) as number[];
+    }
+
+    cond(M: Matrix): number {
+        /**
+         * Function to compute the condition number of a matrix
+         */
+        return norm(M)*norm(inv(M))
     }
 }
