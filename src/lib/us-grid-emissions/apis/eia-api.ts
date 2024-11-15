@@ -54,7 +54,7 @@ export class EiaApi {
      * @param startDate start date, inclusive
      * @param endDate end date, inclusive
      */
-    async fetchFuelTypeData(startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> {
+    async fetchGenerationData(startDate: Date, endDate: Date): Promise<HourlyFuelTypeGenerationData[]> {
         const searchParams = new URLSearchParams();
 
         searchParams.append("start", this.formatTimestamp(startDate));
@@ -79,16 +79,6 @@ export class EiaApi {
      * @param endDate end date, inclusive
      */
     async fetchInterchangeData(startDate: Date, endDate: Date): Promise<HourlyInterchangeData[]> {
-        const fromBaSearchParams = this.createInterchangeSearchParams(startDate, endDate);
-        const fromBaData: HourlyInterchangeData[] = await this.fetchData(this.INTERCHANGE_DATA_ROUTE, fromBaSearchParams);
-
-        const toBaSearchParams = this.createInterchangeSearchParams(startDate, endDate);
-        const toBaData: HourlyInterchangeData[] = await this.fetchData(this.INTERCHANGE_DATA_ROUTE, toBaSearchParams);
-
-        return [...fromBaData, ...toBaData];
-    };
-
-    private createInterchangeSearchParams(startDate: Date, endDate: Date): URLSearchParams {
         const searchParams = new URLSearchParams();
 
         searchParams.append("start", this.formatTimestamp(startDate));
@@ -104,10 +94,10 @@ export class EiaApi {
         searchParams.append("length", String(this.MAX_ROWS));
         searchParams.append("api_key", this.apiKey);
 
-        return searchParams;
+        return await this.fetchData(this.INTERCHANGE_DATA_ROUTE, searchParams);
     };
 
-    private formatTimestamp(d: Date): string {
+    formatTimestamp(d: Date): string {
         return moment(d).format('YYYY-MM-DDTHH');
     };
 
@@ -142,4 +132,4 @@ export class EiaApi {
 
         return allData;
     };
-};
+}

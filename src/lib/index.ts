@@ -1,1 +1,1 @@
-export {USGridEmissionsPlugin} from './us-grid-emissions';
+export { USGridEmissionsPlugin } from './us-grid-emissions';
