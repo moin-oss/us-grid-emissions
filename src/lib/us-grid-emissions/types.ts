@@ -30,3 +30,13 @@ export type HourlyInterchangeData = {
     value: string;
     "value-units": string;
 };
+
+export type HourlyRegionData = {
+    period: string;
+    respondent: string;
+    "respondent-name": string;
+    type: string;
+    "type-name": string;
+    value: string;
+    "value-units": string;
+};
