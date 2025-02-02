@@ -55,13 +55,14 @@ export const USGridEmissionsPlugin = PluginFactory({
             const interchange = calc.getInterchangeMatrix(interchangeForHour);
 
             // 4. Do linear algebra to get M
-            // This the the demand emissions intensity for each BA
+            // This is the demand emissions intensity for each BA
             const intensities = calc.getCarbonIntensities(emissions, interchange, generation);
 
             outputs.push({
                 timestamp: hour,
                 duration: 3600,
-                emissions: intensities[inputs[0]['balancing_authority']],
+                emissions: intensities,
+                // emissions: intensities[inputs[0]['balancing_authority']],
             });
         }
 
