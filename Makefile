@@ -1,4 +1,4 @@
-install: ##do all the npm commands to run the project
+install: #do all the npm commands to run the project
 	npm install
 	npm run build
 	npm link

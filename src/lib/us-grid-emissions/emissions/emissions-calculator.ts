@@ -2,7 +2,7 @@ import { HourlyFuelTypeGenerationData, HourlyInterchangeData } from "../types";
 import { BALANCING_AUTHORITIES, CO2_EMISSIONS_FACTORS } from "../util/constants";
 import { ERRORS } from '../util/errors';
 import {add, diag, inv, lusolve, map, matrix, Matrix, multiply, norm, subtract, sum} from "mathjs";
-const {IllConditionedError, UnrecognizedFuelTypeError} = ERRORS;
+const {UnrecognizedFuelTypeError} = ERRORS;
 
 export class EmissionsCalculator {
     constructor(
@@ -61,6 +61,7 @@ export class EmissionsCalculator {
         return interchangeMatrix;
     }
 
+    // TODO: Update getCarbonIntensities to return BA associated with each
     getCarbonIntensities(emissions: number[], interchange: number[][], generation: number[]): number[] {
         /**
          * Returns the emissions intensity by solving a linear system
@@ -70,12 +71,13 @@ export class EmissionsCalculator {
         const imports = map(multiply(-1, interchangeMatrix), x => Math.max(0, x))
         const totalImports = sum(imports, 1) as unknown;
         const A = subtract(diag(add(generation, totalImports as number[])), imports)
-        if (this.cond(A) > (1.0/Number.EPSILON)) {
-            throw new IllConditionedError(`Linear system of ${A} is not solvable`)
-        }
+        // if (this.cond(A) > (1.0/Number.EPSILON)) {
+        //     throw new IllConditionedError(`Linear system of ${A} is not solvable`)
+        // }
         return lusolve(A, emissions) as unknown as number[];
     }
 
+    // TODO: Update this method to catch zero determinant matrices
     cond(M: Matrix): number {
         /**
          * Function to compute the condition number of a matrix
